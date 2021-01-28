@@ -76,6 +76,20 @@ userSchema.methods.generateToken = function(cb){//parameter로 callback함수를
     })
 }
 
+userSchema.statics.findByToken = function(token, cb) {
+    var user = this;
+    //user._id + 'secretToken' = token
+    //토큰을 decode한다.
+    jwt.verify(token, 'secretToken', function(err, decoded){
+        //유저 아이디를 이용해서 유저를 찾은 다음에
+        //클라이언트에서 가져온 token과 보관된 token이 일치하는지 확인
+        user.findOne({"_id": decoded, "token":token}, function(err,user){
+            if(err) return cb(err);
+            cb(null, user)
+        })
+    })
+}
+
 const User = mongoose.model('User', userSchema)//model(User)로 schema를 감싸서 user를 설정한다.
 
 module.exports = { User } //User model을 다른 파일에서 쓸 수 있게 export하는 부분.

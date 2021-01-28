@@ -3,7 +3,9 @@ const app = express()
 const port = 5000
 const bodyParser = require('body-parser');//body-Parser 라이브러리 불러오기
 const cookieParser = require('cookie-parser');//cookie-Parser import
-const { User } =require("./models/User");//User Model을 불러온다.
+const { auth } = require("./middleware/auth");//middleware auth 구현하고 import
+const { User } = require("./models/User");//User Model을 불러온다.
+
 
 const config = require('./config/key');
 
@@ -24,7 +26,7 @@ mongoose.connect(config.mongoURI,{
 app.get('/', (req, res) => res.send('Hello World!~~안녕하세요 nodemon 실행중'))
 
 
-app.post('/register',(req, res) => {
+app.post('/api/users/register',(req, res) => {
     //회원 가입 할때 필요한 정보를 clinet에서 가져오면
     //그것들을 데이터 베이스에 넣어준다.
     //req.body 안에 { id:"hello" password:1234}로 body에 들어 있는 것을 body parser를 통해서 가져온다.
@@ -38,7 +40,7 @@ app.post('/register',(req, res) => {
     })
 })
 
-app.post('/login', (req, res) => {
+app.post('/api/users/login', (req, res) => {
     //DB에서 요청된 Email이 있는지 찾는다.
     
     User.findOne({email: req.body.email}, (err,user) => {
@@ -68,6 +70,36 @@ app.post('/login', (req, res) => {
 
             })
         })
+    })
+})
+
+app.get('/api/users/auth', auth, (req, res) => {
+    //여기까지 middleware를 통과했다는 얘기는 authentication이 True라는 말.
+    res.status(200).json({
+        _id: req.user._id,
+        isAdmin: req.user.role === 0? false : true,
+        isAuth: true,
+        eamil: req.user.email,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        role: req.user.role,
+        image: req.user.image
+    })
+    //role이 0이 아니면 어드민 0이면 일반유저 이건 설정에 따라서 다르다. 
+    //이렇게 정보를 주면 어느 페이지던지 로그인 된 유저 정보를 사용할 수 있다.
+})
+
+app.get('/api/users/logout', auth, (req,res) =>{
+    //cookie에 토큰을 지워서 인증이 불가능하게 만들면된다.
+
+    User.findOneAndUpdate({_id: req.user._id},
+        {token: ""}
+        , (err, user) => {
+            if (err) return res.json({ success: false, err});
+            return res.status(200).send({
+                success: true
+
+            })
     })
 })
 
