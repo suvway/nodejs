@@ -1,6 +1,5 @@
 const express = require('express')
 const app = express()
-const port = 5000
 const bodyParser = require('body-parser');//body-Parser 라이브러리 불러오기
 const cookieParser = require('cookie-parser');//cookie-Parser import
 const { auth } = require("./middleware/auth");//middleware auth 구현하고 import
@@ -25,6 +24,10 @@ mongoose.connect(config.mongoURI,{
 
 app.get('/', (req, res) => res.send('Hello World!~~안녕하세요 nodemon 실행중'))
 
+app.get('/api/hello', (req,res)=>{
+    res.send("안녕하세요.")
+})
+
 
 app.post('/api/users/register',(req, res) => {
     //회원 가입 할때 필요한 정보를 clinet에서 가져오면
@@ -39,6 +42,8 @@ app.post('/api/users/register',(req, res) => {
         })
     })
 })
+
+
 
 app.post('/api/users/login', (req, res) => {
     //DB에서 요청된 Email이 있는지 찾는다.
@@ -102,5 +107,7 @@ app.get('/api/users/logout', auth, (req,res) =>{
             })
     })
 })
+
+const port = 5000
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
